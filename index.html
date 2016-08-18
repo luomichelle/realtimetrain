@@ -17,7 +17,7 @@
 
     <!-- Jumbotron -->
     <div class="jumbotron" style="background-color: black; color: white">
-        <h1 class="text-center">Train Time</h1>
+        <h1 class="text-center">Real Train Time</h1>
     </div>
     
     <div class="row">
@@ -67,13 +67,12 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="">First Train (min) </label>
-                        <input type="text" class="form-control" id="frequencyinput">
-                    </div>
+                        <label for="">First Train (HH:MM) </label>
+                        <input type="time" class="form-control" id="firstTimeinput" > 
 
                     <div class="form-group">
-                        <label for="">Frquency</label>
-                        <input type="text" class="form-control" id="nextArrivalinput">
+                        <label for="">Frquency (Min) </label>
+                        <input type="text" class="form-control" id="frequencyinput">
                     </div>
                     
                     <button type="submit" class="btn btn-primary" id="addUser">Submit</button>
@@ -105,73 +104,83 @@
     var trainingName = "";
     var destination = "";
     var frequency = "";
-    var nextArrival = 0;
-    var minuteAway = 0;
-    var currentTime = moment();
-    var firsttrain = "";
+    var firstTime = "hh:mm";
+
 // capture button click
 
 $("#addUser").on("click",function() {
     trainingName = $('#nameinput').val().trim(); //inputs from html
     destination = $('#destinationinput').val().trim();
     frequency = $('#frequencyinput').val().trim();
-    nextArrival = $('#nextArrivalinput').val().trim();
+    firstTime = $('#firstTimeinput').val().trim();
+
+
+console.log("thefirsttimefortime" + firstTime);
 
 var newtrain = {
     firebasetrainingName: trainingName,
     firebasedestination: destination,
     firebasefrequency: frequency,
-    firebasenextArrival: nextArrival,
+    firebasefirstTime:firstTime,
     firebasedateAdded: firebase.database.ServerValue.TIMESTAMP
 }
     database.ref().push(newtrain);
 
-    console.log(newtrain.firebasetrainingName);
+    console.log("testtestets" + newtrain.firebasefirstTime);
 
-    alert("Employee successfully added");
+    alert("Train is successfully added");
 
     // Clears all of the text-boxes
-    $("#nameinput").val("");
-    $("#destinationinput").val("");
-    $("#firsttraintimeinput").val("");
-    $("#frequencyinput").val("");
+    $('#nameinput').val();
+    $('#destinationinput').val();
+    $('#frequencyinput').val();
+    $('#firstTimeinput').val();
+
+
+
 
     return false;
 });
 
- database.ref().on("child_added", function(childSnapshot) {
-    // Log everything that's coming out of snapshot
-    console.log(childSnapshot.val());
-    console.log(childSnapshot.val().firebasetrainingName);
-    console.log(childSnapshot.val().firebasedestination);
-    console.log(childSnapshot.val().firebasefrequency);
-    console.log(childSnapshot.val().firebasenextArrival);
-    console.log(childSnapshot.val().firebasedateAdded);
+ database.ref().on("child_added", function(childSnapshot,prevChildKey) {
 
 //--------------------------------------------------------
 
     var trainingName = childSnapshot.val().firebasetrainingName;
     var destination = childSnapshot.val().firebasedestination;
     var frequency = childSnapshot.val().firebasefrequency;
-    var nextArrival = childSnapshot.val().firebasenextArrival;
-    var minuteAway = childSnapshot.val().firebasedateAdded;
+    var firstTime = childSnapshot.val().firebasefirstTime;
+
+    console.log("the test  " + firstTime);
+
 //----------------------------------------------------------------
-    console.log(childSnapshot.val());
     console.log(childSnapshot.val().firebasetrainingName);
     console.log(childSnapshot.val().firebasedestination);
     console.log(childSnapshot.val().firebasefrequency);
-    console.log(childSnapshot.val().firebasenextArrival);
     console.log(childSnapshot.val().firebasedateAdded);
 //----------------------------------------------------------------
+    var currentTime = moment();
 
-
-
-$("#trainingTable > tbody").append("<tr><td>" + trainingName + "</td><td>" + destination + "</td><td>" + frequency + "</td><td>" + nextArrival + "</td><td>" + minuteAway  + "</td></tr>");
-
-    var cuurentTime = moment();
-    console.log("CURRENT TIME: " + moment(currentTime).format("hh:mm"));
 
     
+    var firstTimeConverted = moment(firstTime,"hh:mm").subtract(1, "years");
+        console.log(firstTimeConverted);
+    
+    var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
+    console.log(diffTime);
+    
+    var tRemainder = diffTime % frequency;
+        console.log("the tRemainder:" + moment(tRemainder));
+    
+
+    var tMinutesTillTrain = frequency - tRemainder;
+    console.log("MINUTES TILL TRAIN: " + tMinutesTillTrain);
+    
+    var arrivalTime = moment().add(tMinutesTillTrain, "minutes")
+    console.log("ARRIVAL TIME: " + moment(arrivalTime).format("hh:mm"))
+
+
+$("#trainingTable > tbody").append("<tr><td>" + trainingName + "</td><td>" + destination + "</td><td>" + frequency + "</td><td>" + moment(arrivalTime).format("hh:mm") + "</td><td>" + tMinutesTillTrain + "</td></tr>");
 
 });
 
